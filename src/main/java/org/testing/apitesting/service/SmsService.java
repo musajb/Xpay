@@ -13,9 +13,9 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.Collections;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class SmsService {
 
     private static final String AFRICA_TALKING_URL =
@@ -27,7 +27,7 @@ public class SmsService {
     @Value("${africastalking.api-key}")
     private String apiKey;
 
-    @Value("${africastalking.sender-id}")
+    @Value("${africastalking.sender-id:}")
     private String senderId;
 
     private final RestTemplate restTemplate = new RestTemplate();
