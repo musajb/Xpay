@@ -9,7 +9,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Collections;
@@ -58,7 +57,7 @@ public class SmsService {
 
         MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
         body.add("username", username);
-        body.add("to", phoneNumber); // Must be in format: +234... or +254...
+        body.add("to", phoneNumber); // Must be in format: +234...
         body.add("message", message);
 
         // Optional: Only add 'from' if you have an approved sender ID
