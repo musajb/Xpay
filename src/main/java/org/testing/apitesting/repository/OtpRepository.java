@@ -8,4 +8,9 @@ import java.util.Optional;
 public interface OtpRepository extends JpaRepository<Otp, Long> {
 
     Optional<Otp> findByPhoneNumber(String phoneNumber);
+
+    Optional<Otp> findByPhoneNumberAndCodeAndUsedFalse(String phoneNumber, String code);
+
+    void deleteByPhoneNumber(String phoneNumber);
+
 }

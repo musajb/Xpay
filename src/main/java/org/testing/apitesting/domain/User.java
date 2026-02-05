@@ -28,4 +28,12 @@ public class User {
 
     @Enumerated(EnumType.STRING)
     private VerificationStatus verificationStatus;
+
+    @Column(nullable = false)
+    private boolean verified = false;
+
+    public void verify() {
+        this.verified = true;
+    }
+
 }
