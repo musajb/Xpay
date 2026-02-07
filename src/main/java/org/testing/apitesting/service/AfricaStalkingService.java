@@ -16,7 +16,7 @@ import java.util.Collections;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class SmsService {
+public class AfricaStalkingService {
 
     private static final String AFRICA_TALKING_URL =
             "https://api.sandbox.africastalking.com/version1/messaging";
