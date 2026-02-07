@@ -3,11 +3,14 @@ package org.testing.apitesting.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.testing.apitesting.domain.User;
 import org.testing.apitesting.domain.dto.CreateUserRequest;
 import org.testing.apitesting.domain.dto.UpdateUserRequest;
 import org.testing.apitesting.domain.dto.UserResponse;
 import org.testing.apitesting.exception.ResourceNotFoundException;
+import org.testing.apitesting.exception.UserAlreadyExistsException;
+import org.testing.apitesting.exception.UserNotFoundException;
 import org.testing.apitesting.mapper.UserMapper;
 import org.testing.apitesting.repository.UserRepository;
 
@@ -20,7 +23,16 @@ public class UserService {
     private final UserRepository userRepository;
     private final OtpService otpService;
 
+    @Transactional
     public UserResponse create(CreateUserRequest request) {
+
+        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
+            throw new UserAlreadyExistsException("User with email " + request.getEmail() + " already exists");
+        }
+        if (userRepository.findByPhoneNumber(request.getPhoneNumber()).isPresent()) {
+            throw new UserAlreadyExistsException("User with phone number " + request.getPhoneNumber() + " already exists");
+        }
+
         User user = UserMapper.toEntity(request);
         User savedUser = userRepository.save(user);
 
@@ -31,7 +43,7 @@ public class UserService {
 
     public UserResponse update(Long id, UpdateUserRequest request) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+                .orElseThrow(() -> new UserNotFoundException("User not found with id: " + id));
 
         user.setEmail(request.getEmail());
         user.setFullName(request.getFullName());
@@ -42,7 +54,7 @@ public class UserService {
 
     public UserResponse getById(Long id) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+                .orElseThrow(() -> new UserNotFoundException("User not found with id: " + id));
         return UserMapper.toResponse(user);
     }
 
@@ -55,7 +67,7 @@ public class UserService {
 
     public void delete(Long id) {
         if (!userRepository.existsById(id)) {
-            throw new ResourceNotFoundException("User not found");
+            throw new UserNotFoundException("User not found with id: " + id);
         }
         userRepository.deleteById(id);
     }
