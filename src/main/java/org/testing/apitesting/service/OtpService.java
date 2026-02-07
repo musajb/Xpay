@@ -2,9 +2,10 @@ package org.testing.apitesting.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.testing.apitesting.domain.Otp;
 import org.testing.apitesting.domain.User;
-import org.testing.apitesting.exception.ResourceNotFoundException;
+import org.testing.apitesting.exception.UserNotFoundException;
 import org.testing.apitesting.repository.OtpRepository;
 import org.testing.apitesting.repository.UserRepository;
 
@@ -14,47 +15,46 @@ import java.util.concurrent.ThreadLocalRandom;
 @Service
 @RequiredArgsConstructor
 public class OtpService {
-
     private final OtpRepository otpRepository;
     private final SmsService smsService;
     private final UserRepository userRepository;
 
     public void generateAndSendOtp(String phoneNumber) {
-
         String code = String.valueOf(
                 ThreadLocalRandom.current().nextInt(1000, 9999)
         );
 
-        otpRepository.save(
-                Otp.builder()
-                        .phoneNumber(phoneNumber)
-                        .code(code)
-                        .expiresAt(LocalDateTime.now().plusMinutes(5))
-                        .build()
-        );
+        Otp save = Otp.builder()
+                .phoneNumber(phoneNumber)
+                .code(code)
+                .expiresAt(LocalDateTime.now().plusMinutes(5))
+                .build();
+        otpRepository.save(save);
 
         smsService.sendSms(phoneNumber, "Your OTP code is: " + code
         );
     }
 
+    @Transactional
     public void verifyOtp(String phoneNumber, String code) {
 
         Otp otp = otpRepository.findByPhoneNumberAndCodeAndUsedFalse(phoneNumber, code)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid OTP"));
+                .orElseThrow(( ) -> new IllegalArgumentException("Invalid OTP"));
 
-        if (otp.isExpired()) {
+        if ( otp.isExpired() ) {
             otpRepository.delete(otp);
             throw new IllegalStateException("OTP expired");
         }
 
-        User user = userRepository.findByPhoneNumber(phoneNumber).orElseThrow(() ->
-                new ResourceNotFoundException("User not found"));
+        User user = userRepository.findByPhoneNumber(phoneNumber).orElseThrow(( ) ->
+                new UserNotFoundException("User not found with phone number: " + phoneNumber));
 
         user.verify();
         otp.markUsed();
+        userRepository.save(user);
+        otpRepository.save(otp);
 
-        // optional hard delete instead of used=true
-        otpRepository.delete(otp);
+
     }
 }
 
