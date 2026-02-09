@@ -16,6 +16,9 @@ public class CreateUserRequest{
         @NotBlank
         private String email;
 
+        @NotBlank
+        private String password;
+
         @Pattern(
                 regexp = "^\\+?[1-9]\\d{9,14}$",
                 message = "Invalid phone number"
