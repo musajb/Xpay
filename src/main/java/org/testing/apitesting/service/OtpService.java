@@ -16,7 +16,7 @@ import java.util.concurrent.ThreadLocalRandom;
 @RequiredArgsConstructor
 public class OtpService {
     private final OtpRepository otpRepository;
-    private final SmsService smsService;
+    private final AfricaStalkingService africaStalkingService;
     private final UserRepository userRepository;
 
     public void generateAndSendOtp(String phoneNumber) {
@@ -31,7 +31,7 @@ public class OtpService {
                 .build();
         otpRepository.save(save);
 
-        smsService.sendSms(phoneNumber, "Your OTP code is: " + code
+        africaStalkingService.sendSms(phoneNumber, "Your OTP code is: " + code
         );
     }
 
