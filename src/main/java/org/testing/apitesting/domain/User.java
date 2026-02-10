@@ -34,6 +34,9 @@ public class User implements UserDetails {
     @Column(nullable = true, unique = true)
     private String phoneNumber;
 
+    @Column(nullable = true)
+    private String transactionPin;
+
     @Enumerated(EnumType.STRING)
     private VerificationStatus verificationStatus;
 

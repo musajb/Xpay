@@ -18,8 +18,11 @@ import java.util.Collections;
 @RequiredArgsConstructor
 public class AfricaStalkingService {
 
-    private static final String AFRICA_TALKING_URL =
+    private static final String AFRICA_TALKING_SMS_URL =
             "https://api.sandbox.africastalking.com/version1/messaging";
+
+    private static final String AFRICA_TALKING_AIRTIME_URL =
+            "https://api.sandbox.africastalking.com/version1/airtime/send";
 
     @Value("${africastalking.username}")
     private String username;
@@ -69,7 +72,7 @@ public class AfricaStalkingService {
 
         try {
             ResponseEntity<String> response = restTemplate.postForEntity(
-                    AFRICA_TALKING_URL,
+                    AFRICA_TALKING_SMS_URL,
                     request,
                     String.class
             );
@@ -86,6 +89,48 @@ public class AfricaStalkingService {
                     e.getStatusCode(), e.getResponseBodyAsString());
         } catch (Exception ex) {
             log.error("Failed to send SMS: {}", ex.getMessage(), ex);
+        }
+    }
+
+    public void sendAirtime(String phoneNumber, Double amount, String currency) {
+        if (phoneNumber == null || phoneNumber.isEmpty()) {
+            log.error("Phone number is empty");
+            return;
+        }
+
+        log.info("Attempting to send airtime to: {} amount: {}{}", phoneNumber, currency, amount);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+        headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+        headers.set("apiKey", apiKey);
+
+        MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
+        body.add("username", username);
+        // Format: [{"phoneNumber":"+234...","amount":"NGN 100"}]
+        String recipients = String.format("[{\"phoneNumber\":\"%s\",\"amount\":\"%s %.2f\"}]", phoneNumber, currency, amount);
+        body.add("recipients", recipients);
+
+        HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(body, headers);
+
+        try {
+            ResponseEntity<String> response = restTemplate.postForEntity(
+                    AFRICA_TALKING_AIRTIME_URL,
+                    request,
+                    String.class
+            );
+
+            if (response.getStatusCode().is2xxSuccessful()) {
+                log.info("Airtime sent successfully to {}", phoneNumber);
+                log.info("Response: {}", response.getBody());
+            } else {
+                log.error("Airtime failed with status: {}, Body: {}", response.getStatusCode(), response.getBody());
+            }
+        } catch (HttpClientErrorException e) {
+            log.error("Airtime Client Error: Status={}, Body={}",
+                    e.getStatusCode(), e.getResponseBodyAsString());
+        } catch (Exception ex) {
+            log.error("Failed to send airtime: {}", ex.getMessage(), ex);
         }
     }
 }
