@@ -19,7 +19,7 @@ import java.util.Collections;
 public class AfricaStalkingService {
 
     private static final String AFRICA_TALKING_URL =
-            "http://api.sandbox.africastalking.com/version1/messaging";
+            "https://api.sandbox.africastalking.com/version1/messaging";
 
     @Value("${africastalking.username}")
     private String username;

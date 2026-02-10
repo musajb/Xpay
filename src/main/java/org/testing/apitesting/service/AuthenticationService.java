@@ -3,6 +3,7 @@ package org.testing.apitesting.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.testing.apitesting.domain.User;
@@ -13,8 +14,6 @@ import org.testing.apitesting.exception.UserNotFoundException;
 import org.testing.apitesting.mapper.UserMapper;
 import org.testing.apitesting.repository.UserRepository;
 
-import java.util.HashMap;
-import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -56,12 +55,7 @@ public class AuthenticationService {
                 .or(() -> userRepository.findByPhoneNumber(request.getIdentifier()))
                 .orElseThrow(() -> new UserNotFoundException("User not found with identifier: " + request.getIdentifier()));
 
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        user.getEmail(),
-                        request.getPassword()
-                )
-        );
+        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(user.getEmail(),request.getPassword()));
 
         var jwtToken = jwtService.generateToken(user);
         return AuthenticationResponse.builder()

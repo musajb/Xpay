@@ -23,10 +23,7 @@ public class OtpController {
     public ResponseEntity<Void> verifyOtp(
             @Valid @RequestBody VerifyOtpRequest request) {
 
-        otpService.verifyOtp(
-                request.getPhoneNumber(),
-                request.getOtp()
-        );
+        otpService.verifyOtp(request.getPhoneNumber(), request.getOtp());
 
         return ResponseEntity.noContent().build();
     }
