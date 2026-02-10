@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.testing.apitesting.domain.dto.AuthenticationRequest;
 import org.testing.apitesting.domain.dto.AuthenticationResponse;
 import org.testing.apitesting.domain.dto.CreateUserRequest;
+import org.testing.apitesting.domain.dto.SetPasscodeRequest;
 import org.testing.apitesting.service.AuthenticationService;
 
 @RestController
@@ -30,5 +31,12 @@ public class AuthenticationController {
             @RequestBody AuthenticationRequest request
     ) {
         return ResponseEntity.ok(service.authenticate(request));
+    }
+
+    @PostMapping("/set-passcode")
+    public ResponseEntity<AuthenticationResponse> setPasscode(
+            @RequestBody SetPasscodeRequest request
+    ) {
+        return ResponseEntity.ok(service.setPasscode(request));
     }
 }

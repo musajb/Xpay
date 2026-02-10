@@ -35,7 +35,6 @@ public class UserService {
         }
 
         User user = UserMapper.toEntity(request);
-        user.setPassword(passwordEncoder.encode(request.getPassword()));
         User savedUser = userRepository.save(user);
 
         otpService.generateAndSendOtp(savedUser.getPhoneNumber());
