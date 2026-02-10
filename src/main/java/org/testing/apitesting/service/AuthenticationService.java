@@ -6,13 +6,15 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.testing.apitesting.domain.User;
-import org.testing.apitesting.domain.dto.AuthenticationRequest;
-import org.testing.apitesting.domain.dto.AuthenticationResponse;
-import org.testing.apitesting.domain.dto.CreateUserRequest;
+import org.testing.apitesting.domain.dto.*;
 import org.testing.apitesting.domain.type.VerificationStatus;
 import org.testing.apitesting.exception.UserAlreadyExistsException;
+import org.testing.apitesting.exception.UserNotFoundException;
 import org.testing.apitesting.mapper.UserMapper;
 import org.testing.apitesting.repository.UserRepository;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -25,7 +27,6 @@ public class AuthenticationService {
     private final OtpService otpService;
 
     public AuthenticationResponse register(CreateUserRequest request) {
-
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
             throw new UserAlreadyExistsException("User with email " + request.getEmail() + " already exists");
         }
@@ -36,7 +37,6 @@ public class AuthenticationService {
         User user = User.builder()
                 .fullName(request.getFullName())
                 .email(request.getEmail())
-                .password(passwordEncoder.encode(request.getPassword()))
                 .phoneNumber(request.getPhoneNumber())
                 .verificationStatus(VerificationStatus.PENDING)
                 .verified(false)
@@ -44,25 +44,46 @@ public class AuthenticationService {
 
         User savedUser = userRepository.save(user);
         otpService.generateAndSendOtp(user.getPhoneNumber());
-        var jwtToken = jwtService.generateToken(user);
 
         return AuthenticationResponse.builder()
-                .token(jwtToken)
+                .message("User registered successfully. Please verify OTP sent to your phone.")
                 .userResponse(UserMapper.toResponse(savedUser))
                 .build();
     }
 
     public AuthenticationResponse authenticate(AuthenticationRequest request) {
+        User user = userRepository.findByEmail(request.getIdentifier())
+                .or(() -> userRepository.findByPhoneNumber(request.getIdentifier()))
+                .orElseThrow(() -> new UserNotFoundException("User not found with identifier: " + request.getIdentifier()));
+
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
-                        request.getEmail(),
+                        user.getEmail(),
                         request.getPassword()
                 )
         );
-        User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow();
+
         var jwtToken = jwtService.generateToken(user);
         return AuthenticationResponse.builder()
+                .token(jwtToken)
+                .userResponse(UserMapper.toResponse(user))
+                .build();
+    }
+
+    public AuthenticationResponse setPasscode(SetPasscodeRequest request) {
+        var user = userRepository.findByPhoneNumber(request.getPhoneNumber())
+                .orElseThrow(() -> new UserNotFoundException("User not found with phone number: " + request.getPhoneNumber()));
+
+        if (!user.isVerified()) {
+            throw new IllegalStateException("User phone number not verified. Please verify OTP first.");
+        }
+
+        user.setPassword(passwordEncoder.encode(request.getPasscode()));
+        userRepository.save(user);
+
+        var jwtToken = jwtService.generateToken(user);
+        return AuthenticationResponse.builder()
+                .message("Passcode set successfully.")
                 .token(jwtToken)
                 .userResponse(UserMapper.toResponse(user))
                 .build();
