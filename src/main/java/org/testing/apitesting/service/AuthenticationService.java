@@ -59,6 +59,7 @@ public class AuthenticationService {
 
         var jwtToken = jwtService.generateToken(user);
         return AuthenticationResponse.builder()
+                .message("Login Successfully")
                 .token(jwtToken)
                 .userResponse(UserMapper.toResponse(user))
                 .build();

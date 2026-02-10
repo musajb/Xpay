@@ -35,10 +35,7 @@ public class UserController {
     }
 
     @PutMapping("/{id}")
-    public UserResponse update(
-            @PathVariable Long id,
-            @Valid @RequestBody UpdateUserRequest request
-    ) {
+    public UserResponse update(@PathVariable Long id, @Valid @RequestBody UpdateUserRequest request) {
         return userService.update(id, request);
     }
 
