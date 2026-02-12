@@ -3,6 +3,7 @@ package org.testing.apitesting.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.testing.apitesting.domain.User;
@@ -71,5 +72,25 @@ public class UserService {
             throw new UserNotFoundException("User not found with id: " + id);
         }
         userRepository.deleteById(id);
+    }
+
+    public void setTransactionPin(String pin) {
+        if (!pin.matches("\\d{4}")) {
+            throw new IllegalArgumentException("PIN must be 4 digits");
+        }
+        User user = getAuthenticatedUser();
+
+        if (user.getTransactionPin() != null) {
+            throw new IllegalStateException("Transaction PIN already set");
+        }
+
+        user.setTransactionPin(passwordEncoder.encode(pin));
+        userRepository.save(user);
+    }
+
+    private User getAuthenticatedUser() {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
     }
 }

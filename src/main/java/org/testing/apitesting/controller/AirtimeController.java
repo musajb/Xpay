@@ -2,8 +2,6 @@ package org.testing.apitesting.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import org.testing.apitesting.domain.dto.AirtimeRequest;
 import org.testing.apitesting.domain.dto.AirtimeResponse;
@@ -34,11 +32,5 @@ public class AirtimeController {
     @PostMapping("/purchase")
     public ResponseEntity<AirtimeResponse> purchase(@RequestBody AirtimeRequest request) {
         return ResponseEntity.ok(airtimeService.purchaseAirtime(request));
-    }
-
-    @PostMapping("/transaction-pin")
-    public ResponseEntity<Void> setPin(@RequestParam String pin, @AuthenticationPrincipal UserDetails userDetails) {
-        airtimeService.setTransactionPin(pin, userDetails.getUsername());
-        return ResponseEntity.ok().build();
     }
 }

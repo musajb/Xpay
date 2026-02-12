@@ -9,12 +9,17 @@ import org.testing.apitesting.domain.User;
 import org.testing.apitesting.domain.dto.AirtimeRequest;
 import org.testing.apitesting.domain.dto.AirtimeResponse;
 import org.testing.apitesting.domain.dto.AirtimeSummaryResponse;
+import org.testing.apitesting.domain.type.TransactionStatus;
+import org.testing.apitesting.domain.type.TransactionType;
 import org.testing.apitesting.exception.UserNotFoundException;
+import org.testing.apitesting.repository.TransactionRepository;
 import org.testing.apitesting.repository.UserRepository;
+import org.testing.apitesting.domain.Transaction;
 
-import java.nio.file.AccessDeniedException;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -23,11 +28,10 @@ public class AirtimeService {
     private final AfricaStalkingService africaStalkingService;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final TransactionRepository transactionRepository;
 
     public AirtimeResponse purchaseAirtime(AirtimeRequest request) {
-        String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UserNotFoundException("User not found"));
+        User user = getAuthenticatedUser();
 
         if (user.getTransactionPin() == null) {
             return AirtimeResponse.builder()
@@ -54,30 +58,49 @@ public class AirtimeService {
         }
 
         // Default to NGN for now, or fetch from config
-        africaStalkingService.sendAirtime(request.getPhoneNumber(), request.getAmount(), "NGN");
+        try {
+            africaStalkingService.sendAirtime(request.getPhoneNumber(), request.getAmount(), "NGN");
+            
+            String reference = UUID.randomUUID().toString();
+            Transaction transaction = Transaction.builder()
+                    .user(user)
+                    .amount(request.getAmount())
+                    .type(TransactionType.AIRTIME)
+                    .status(TransactionStatus.SUCCESS)
+                    .reference(reference)
+                    .recipient(request.getPhoneNumber())
+                    .description("Airtime purchase to " + request.getPhoneNumber())
+                    .createdAt(LocalDateTime.now())
+                    .build();
+            transactionRepository.save(transaction);
 
-        return AirtimeResponse.builder()
-                .status("SUCCESS")
-                .message("Airtime purchase initiated successfully")
-                .pinRequired(false)
-                .build();
-    }
-
-
-   public void setTransactionPin(String pin, String email) {
-
-       if (!pin.matches("\\d{4}")) {
-           throw new IllegalArgumentException("PIN must be 4 digits");
-       }
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UserNotFoundException("User not found"));
-
-       if (user.getTransactionPin() != null) {
-           throw new IllegalStateException("Transaction PIN already set");
-       }
-
-        user.setTransactionPin(passwordEncoder.encode(pin));
-        userRepository.save(user);
+            return AirtimeResponse.builder()
+                    .status("SUCCESS")
+                    .message("Airtime purchase initiated successfully")
+                    .pinRequired(false)
+                    .transactionReference(reference)
+                    .build();
+        } catch (Exception e) {
+            String reference = UUID.randomUUID().toString();
+            Transaction transaction = Transaction.builder()
+                    .user(user)
+                    .amount(request.getAmount())
+                    .type(TransactionType.AIRTIME)
+                    .status(TransactionStatus.FAILED)
+                    .reference(reference)
+                    .recipient(request.getPhoneNumber())
+                    .description("Failed Airtime purchase to " + request.getPhoneNumber())
+                    .createdAt(LocalDateTime.now())
+                    .build();
+            transactionRepository.save(transaction);
+            
+            return AirtimeResponse.builder()
+                    .status("FAILED")
+                    .message("Airtime purchase failed: " + e.getMessage())
+                    .pinRequired(false)
+                    .transactionReference(reference)
+                    .build();
+        }
     }
 
     public AirtimeSummaryResponse getSummary(AirtimeRequest request) {
@@ -91,14 +114,18 @@ public class AirtimeService {
     }
 
     public  Map<String, Object> initiateAirtimePuchase() {
-        String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UserNotFoundException("User not found"));
+        User user = getAuthenticatedUser();
 
         Map<String, Object> response = new HashMap<>();
         response.put("phoneNumber", user.getPhoneNumber());
         response.put("pinSet", user.getTransactionPin() != null);
 
         return response;
+    }
+
+    private User getAuthenticatedUser() {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
     }
 }
