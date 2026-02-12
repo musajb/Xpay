@@ -18,6 +18,11 @@ public class UserController {
 
     private final UserService userService;
 
+    @PostMapping("/transaction-pin")
+    public void setPin(@RequestParam String pin) {
+        userService.setTransactionPin(pin);
+    }
+
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public UserResponse create(@Valid @RequestBody CreateUserRequest request) {
