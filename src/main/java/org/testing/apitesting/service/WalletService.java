@@ -32,7 +32,6 @@ public class WalletService {
     private final UserRepository userRepository;
     private final TransactionRepository transactionRepository;
     private final MonnifyService monnifyService;
-    private final RestTemplate restTemplate = new RestTemplate();
 
 
     private User getAuthenticatedUser() {
