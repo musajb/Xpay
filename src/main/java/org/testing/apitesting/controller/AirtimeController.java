@@ -3,6 +3,7 @@ package org.testing.apitesting.controller;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.testing.apitesting.domain.dto.ApiResponse;
 import org.testing.apitesting.domain.dto.AirtimeRequest;
 import org.testing.apitesting.domain.dto.AirtimeResponse;
 import org.testing.apitesting.domain.dto.AirtimeSummaryResponse;
@@ -17,20 +18,20 @@ public class AirtimeController {
     private final AirtimeService airtimeService;
 
     @GetMapping("/initiate")
-    public ResponseEntity<Map<String, Object>> initiate() {
+    public ResponseEntity<ApiResponse<Map<String, Object>>> initiate() {
 
         Map<String, Object> initiateAirtime = airtimeService.initiateAirtimePurchase();
 
-        return ResponseEntity.ok(initiateAirtime);
+        return ResponseEntity.ok(ApiResponse.success("Airtime purchase initiated", initiateAirtime));
     }
 
     @PostMapping("/summary")
-    public ResponseEntity<AirtimeSummaryResponse> summary(@RequestBody AirtimeRequest request) {
-        return ResponseEntity.ok(airtimeService.getSummary(request));
+    public ResponseEntity<ApiResponse<AirtimeSummaryResponse>> summary(@RequestBody AirtimeRequest request) {
+        return ResponseEntity.ok(ApiResponse.success("Airtime summary retrieved", airtimeService.getSummary(request)));
     }
 
     @PostMapping("/purchase")
-    public ResponseEntity<AirtimeResponse> purchase(@RequestBody AirtimeRequest request) {
-        return ResponseEntity.ok(airtimeService.purchaseAirtime(request));
+    public ResponseEntity<ApiResponse<AirtimeResponse>> purchase(@RequestBody AirtimeRequest request) {
+        return ResponseEntity.ok(ApiResponse.success("Airtime purchased successfully", airtimeService.purchaseAirtime(request)));
     }
 }

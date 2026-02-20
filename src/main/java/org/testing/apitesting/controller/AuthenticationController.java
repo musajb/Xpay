@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.testing.apitesting.domain.dto.ApiResponse;
 import org.testing.apitesting.domain.dto.AuthenticationRequest;
 import org.testing.apitesting.domain.dto.AuthenticationResponse;
 import org.testing.apitesting.domain.dto.CreateUserRequest;
@@ -20,23 +21,17 @@ public class AuthenticationController {
     private final AuthenticationService service;
 
     @PostMapping("/register")
-    public ResponseEntity<AuthenticationResponse> register(
-            @RequestBody CreateUserRequest request
-    ) {
-        return ResponseEntity.ok(service.register(request));
+    public ResponseEntity<ApiResponse<AuthenticationResponse>> register(@RequestBody CreateUserRequest request) {
+        return ResponseEntity.ok(ApiResponse.success("Registration successful", service.register(request)));
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthenticationResponse> authenticate(
-            @RequestBody AuthenticationRequest request
-    ) {
-        return ResponseEntity.ok(service.authenticate(request));
+    public ResponseEntity<ApiResponse<AuthenticationResponse>> authenticate(@RequestBody AuthenticationRequest request) {
+        return ResponseEntity.ok(ApiResponse.success("Login successful", service.authenticate(request)));
     }
 
     @PostMapping("/set-passcode")
-    public ResponseEntity<AuthenticationResponse> setPasscode(
-            @RequestBody SetPasscodeRequest request
-    ) {
-        return ResponseEntity.ok(service.setPasscode(request));
+    public ResponseEntity<ApiResponse<AuthenticationResponse>> setPasscode(@RequestBody SetPasscodeRequest request) {
+        return ResponseEntity.ok(ApiResponse.success("Passcode set successfully", service.setPasscode(request)));
     }
 }
