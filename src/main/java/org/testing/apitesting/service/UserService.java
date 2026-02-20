@@ -15,7 +15,14 @@ import org.testing.apitesting.exception.UserNotFoundException;
 import org.testing.apitesting.mapper.UserMapper;
 import org.testing.apitesting.repository.UserRepository;
 
+import org.testing.apitesting.domain.type.TransactionStatus;
+import org.testing.apitesting.domain.type.TransactionType;
+import org.testing.apitesting.domain.Transaction;
+import org.testing.apitesting.repository.TransactionRepository;
+
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -24,6 +31,8 @@ public class UserService {
     private final UserRepository userRepository;
     private final OtpService otpService;
     private final PasswordEncoder passwordEncoder;
+    private final TransactionRepository transactionRepository;
+    private final MonnifyService monnifyService;
 
     @Transactional
     public UserResponse create(CreateUserRequest request) {

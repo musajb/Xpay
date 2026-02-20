@@ -14,4 +14,5 @@ public class AirtimeResponse {
     private String message;
     private boolean pinRequired;
     private String transactionReference;
+    private String recipient;
 }

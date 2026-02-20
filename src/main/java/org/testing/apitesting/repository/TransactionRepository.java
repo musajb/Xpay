@@ -17,5 +17,7 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
 
         Optional<Transaction> findByIdAndUserId(Long id, Long userId);
 
-        boolean existsByIdAndUserId(Long id, Long userId);
-    }
+
+    boolean existsByReference(String reference);
+
+}
