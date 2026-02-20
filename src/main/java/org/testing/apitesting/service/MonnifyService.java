@@ -1,6 +1,5 @@
 package org.testing.apitesting.service;
 
-import lombok.Builder;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -10,8 +9,11 @@ import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Slf4j
@@ -103,6 +105,59 @@ public class MonnifyService {
             return result;
         }
         throw new RuntimeException("Failed to create Monnify reserved account: " + response.getStatusCode());
+    }
+
+
+
+    public ReservedAccountBalanceResponse.BalanceBody getReservedAccountBalance(String accountReference) {
+        String accessToken = getAccessToken();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(accessToken);
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        HttpEntity<Void> entity = new HttpEntity<>(headers);
+
+        try {
+            ResponseEntity<ReservedAccountBalanceResponse> response = restTemplate.exchange(
+                    baseUrl + "/api/v1/bank-transfer/reserved-accounts/" + accountReference,
+                    HttpMethod.GET,
+                    entity,
+                    ReservedAccountBalanceResponse.class
+            );
+
+            if (response.getStatusCode() == HttpStatus.OK
+                    && response.getBody() != null
+                    && response.getBody().isRequestSuccessful()) {
+                return response.getBody().getResponseBody();
+            }
+            throw new RuntimeException("Failed to fetch reserved account balance: " + response.getStatusCode());
+
+        } catch (Exception e) {
+            log.error("Error fetching reserved account balance for reference: {}", accountReference, e);
+            throw new RuntimeException("Could not retrieve virtual account balance from Monnify", e);
+        }
+    }
+
+    // Add this DTO inside MonnifyService
+    @Data
+    public static class ReservedAccountBalanceResponse {
+        private boolean requestSuccessful;
+        private String responseMessage;
+        private String responseCode;
+        private BalanceBody responseBody;
+
+        @Data
+        public static class BalanceBody {
+            private String accountReference;
+            private String accountName;
+            private String customerEmail;
+            private String currencyCode;
+            private Double totalAmount;         // total ever received
+            private Double balance;             // current balance on Monnify side
+            private String accountNumber;
+            private String bankName;
+        }
     }
 
     @Data

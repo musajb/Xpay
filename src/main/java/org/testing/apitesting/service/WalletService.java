@@ -2,13 +2,11 @@ package org.testing.apitesting.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.jspecify.annotations.NonNull;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
 import org.testing.apitesting.domain.Transaction;
 import org.testing.apitesting.domain.User;
 import org.testing.apitesting.domain.Wallet;
@@ -20,12 +18,9 @@ import org.testing.apitesting.repository.TransactionRepository;
 import org.testing.apitesting.repository.UserRepository;
 import org.testing.apitesting.repository.WalletRepository;
 
-import javax.crypto.Mac;
-import javax.crypto.spec.SecretKeySpec;
-import java.nio.charset.StandardCharsets;
+
 import java.time.LocalDateTime;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 
 @Slf4j
@@ -37,6 +32,7 @@ public class WalletService {
     private final UserRepository userRepository;
     private final TransactionRepository transactionRepository;
     private final MonnifyService monnifyService;
+    private final RestTemplate restTemplate = new RestTemplate();
 
 
     private User getAuthenticatedUser() {
@@ -97,6 +93,28 @@ public class WalletService {
                 .createdAt(LocalDateTime.now())
                 .build();
         transactionRepository.save(trx);
+    }
+
+    public Map<String, Object> getVirtualAccountBalance() {
+        Wallet wallet = getOrCreateCurrentUserWallet();
+
+        if (wallet.getVaReference() == null || wallet.getVaReference().isEmpty()) {
+            throw new IllegalStateException("No virtual account found. Please generate one first.");
+        }
+
+        MonnifyService.ReservedAccountBalanceResponse.BalanceBody monnifyData =
+                monnifyService.getReservedAccountBalance(wallet.getVaReference());
+
+        Map<String, Object> result = new java.util.LinkedHashMap<>();
+        result.put("localBalance", wallet.getBalance());
+        result.put("monnifyTotalReceived", monnifyData.getTotalAmount());
+        result.put("accountNumber", wallet.getVaAccountNumber());
+        result.put("bankName", wallet.getVaBankName());
+        result.put("accountReference", wallet.getVaReference());
+        result.put("accountName", monnifyData.getAccountName());
+        result.put("currency", monnifyData.getCurrencyCode());
+
+        return result;
     }
 
     private WalletResponse toResponse(Wallet wallet) {
