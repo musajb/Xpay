@@ -19,7 +19,7 @@ public class AirtimeController {
     @GetMapping("/initiate")
     public ResponseEntity<Map<String, Object>> initiate() {
 
-        Map<String, Object> initiateAirtime = airtimeService.initiateAirtimePuchase();
+        Map<String, Object> initiateAirtime = airtimeService.initiateAirtimePurchase();
 
         return ResponseEntity.ok(initiateAirtime);
     }

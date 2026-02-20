@@ -92,7 +92,13 @@ public class AfricaStalkingService {
         }
     }
 
+    @Value("${africastalking.currency:NGN}")
+    private String defaultCurrency;
+
     public void sendAirtime(String phoneNumber, Double amount, String currency) {
+        if (currency == null || currency.isEmpty()) {
+            currency = defaultCurrency;
+        }
         if (phoneNumber == null || phoneNumber.isEmpty()) {
             log.error("Phone number is empty");
             return;
@@ -124,13 +130,18 @@ public class AfricaStalkingService {
                 log.info("Airtime sent successfully to {}", phoneNumber);
                 log.info("Response: {}", response.getBody());
             } else {
-                log.error("Airtime failed with status: {}, Body: {}", response.getStatusCode(), response.getBody());
+                String errorBody = response.getBody();
+                log.error("Airtime failed with status: {}, Body: {}", response.getStatusCode(), errorBody);
+                throw new RuntimeException("Africa's Talking API error: " + 
+                    (errorBody != null ? errorBody : response.getStatusCode().toString()));
             }
         } catch (HttpClientErrorException e) {
             log.error("Airtime Client Error: Status={}, Body={}",
                     e.getStatusCode(), e.getResponseBodyAsString());
+            throw new RuntimeException("Africa's Talking Client Error: " + e.getResponseBodyAsString(), e);
         } catch (Exception ex) {
             log.error("Failed to send airtime: {}", ex.getMessage(), ex);
+            throw ex;
         }
     }
 }

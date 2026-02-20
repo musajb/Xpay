@@ -13,4 +13,5 @@ public class AirtimeRequest {
     private String phoneNumber;
     private Double amount;
     private String transactionPin;
+    private String currency;
 }

@@ -1,7 +1,6 @@
 package org.testing.apitesting.service;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -29,6 +28,7 @@ public class AirtimeService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final TransactionRepository transactionRepository;
+    private final WalletService walletService;
 
     public AirtimeResponse purchaseAirtime(AirtimeRequest request) {
         User user = getAuthenticatedUser();
@@ -57,43 +57,33 @@ public class AirtimeService {
                     .build();
         }
 
-        // Default to NGN for now, or fetch from config
+        // Check wallet balance
+        Double balance = walletService.getOrCreateCurrentUserWallet().getBalance();
+        if (balance < request.getAmount()) {
+            return AirtimeResponse.builder()
+                    .status("FAILED")
+                    .message("Insufficient balance. Your balance is: " + balance)
+                    .pinRequired(false)
+                    .build();
+        }
+
+        // Default to config or fetch from request
         try {
-            africaStalkingService.sendAirtime(request.getPhoneNumber(), request.getAmount(), "NGN");
+            africaStalkingService.sendAirtime(request.getPhoneNumber(), request.getAmount(), request.getCurrency());
             
             String reference = UUID.randomUUID().toString();
-            Transaction transaction = Transaction.builder()
-                    .user(user)
-                    .amount(request.getAmount())
-                    .type(TransactionType.AIRTIME)
-                    .status(TransactionStatus.SUCCESS)
-                    .reference(reference)
-                    .recipient(request.getPhoneNumber())
-                    .description("Airtime purchase to " + request.getPhoneNumber())
-                    .createdAt(LocalDateTime.now())
-                    .build();
-            transactionRepository.save(transaction);
+            walletService.debitForAirtime(user, request.getAmount(), request.getPhoneNumber(), reference, true);
 
             return AirtimeResponse.builder()
                     .status("SUCCESS")
                     .message("Airtime purchase initiated successfully")
-                    .pinRequired(false)
+                    .pinRequired(true)
+                    .recipient(request.getPhoneNumber())
                     .transactionReference(reference)
                     .build();
         } catch (Exception e) {
             String reference = UUID.randomUUID().toString();
-            Transaction transaction = Transaction.builder()
-                    .user(user)
-                    .amount(request.getAmount())
-                    .type(TransactionType.AIRTIME)
-                    .status(TransactionStatus.FAILED)
-                    .reference(reference)
-                    .recipient(request.getPhoneNumber())
-                    .description("Failed Airtime purchase to " + request.getPhoneNumber())
-                    .createdAt(LocalDateTime.now())
-                    .build();
-            transactionRepository.save(transaction);
-            
+            walletService.debitForAirtime(user, request.getAmount(), request.getPhoneNumber(), reference, false);
             return AirtimeResponse.builder()
                     .status("FAILED")
                     .message("Airtime purchase failed: " + e.getMessage())
@@ -113,7 +103,7 @@ public class AirtimeService {
                 .build();
     }
 
-    public  Map<String, Object> initiateAirtimePuchase() {
+    public  Map<String, Object> initiateAirtimePurchase() {
         User user = getAuthenticatedUser();
 
         Map<String, Object> response = new HashMap<>();

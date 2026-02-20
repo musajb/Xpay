@@ -26,7 +26,5 @@ public class UserMapper {
                .verificationStatus(user.getVerificationStatus().name())
                .build();
 
-
-
     }
 }

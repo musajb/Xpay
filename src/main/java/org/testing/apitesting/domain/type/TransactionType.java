@@ -5,5 +5,6 @@ public enum TransactionType {
     DATA,
     TV_CABLE,
     ELECTRICITY,
-    TRANSFER
+    TRANSFER,
+    WALLET_FUNDING
 }

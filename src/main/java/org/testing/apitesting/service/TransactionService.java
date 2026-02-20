@@ -42,16 +42,6 @@ public class TransactionService {
         return mapToResponse(transaction);
     }
 
-    public void deleteById(Long userId, Long transactionId) {
-        boolean exists = transactionRepository
-                .existsByIdAndUserId(transactionId, userId);
-
-        if (!exists) {
-            throw new ResourceNotFoundException("Transaction not found");
-        }
-
-        transactionRepository.deleteById(transactionId);
-    }
 
     private TransactionResponse mapToResponse(Transaction transaction) {
         return TransactionResponse.builder()

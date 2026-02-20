@@ -23,22 +23,11 @@ public class TransactionController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
-        return transactionService.getUserTransactions(
-                userid,
-                type,
-                page,
-                size
-        );
+        return transactionService.getUserTransactions(userid, type, page, size);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<TransactionResponse> getById(@RequestParam Long userId, @PathVariable Long id) {
         return ResponseEntity.ok(transactionService.getById(userId, id));
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@RequestParam Long userId, @PathVariable Long id) {
-        transactionService.deleteById(userId, id);
-        return ResponseEntity.noContent().build();
     }
 }
