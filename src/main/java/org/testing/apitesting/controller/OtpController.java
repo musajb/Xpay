@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.testing.apitesting.domain.dto.ApiResponse;
 import org.testing.apitesting.domain.dto.VerifyOtpRequest;
 import org.testing.apitesting.service.OtpService;
 
@@ -20,11 +21,11 @@ public class OtpController {
     }
 
     @PostMapping("/verify")
-    public ResponseEntity<Void> verifyOtp(
+    public ResponseEntity<ApiResponse<Void>> verifyOtp(
             @Valid @RequestBody VerifyOtpRequest request) {
 
         otpService.verifyOtp(request.getPhoneNumber(), request.getOtp());
 
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(ApiResponse.success("OTP verified successfully", null));
     }
 }
