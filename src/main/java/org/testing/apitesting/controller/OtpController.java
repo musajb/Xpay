@@ -26,6 +26,6 @@ public class OtpController {
 
         otpService.verifyOtp(request.getPhoneNumber(), request.getOtp());
 
-        return ResponseEntity.ok(ApiResponse.success("OTP verified successfully", null));
+        return ResponseEntity.ok(new ApiResponse<>("OTP verified successfully", null));
     }
 }

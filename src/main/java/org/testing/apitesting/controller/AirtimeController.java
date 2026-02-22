@@ -22,16 +22,16 @@ public class AirtimeController {
 
         Map<String, Object> initiateAirtime = airtimeService.initiateAirtimePurchase();
 
-        return ResponseEntity.ok(ApiResponse.success("Airtime purchase initiated", initiateAirtime));
+        return ResponseEntity.ok(new ApiResponse<>("Airtime purchase initiated", initiateAirtime));
     }
 
     @PostMapping("/summary")
     public ResponseEntity<ApiResponse<AirtimeSummaryResponse>> summary(@RequestBody AirtimeRequest request) {
-        return ResponseEntity.ok(ApiResponse.success("Airtime summary retrieved", airtimeService.getSummary(request)));
+        return ResponseEntity.ok(new ApiResponse<>("Airtime summary retrieved", airtimeService.getSummary(request)));
     }
 
     @PostMapping("/purchase")
     public ResponseEntity<ApiResponse<AirtimeResponse>> purchase(@RequestBody AirtimeRequest request) {
-        return ResponseEntity.ok(ApiResponse.success("Airtime purchased successfully", airtimeService.purchaseAirtime(request)));
+        return ResponseEntity.ok(new ApiResponse<>("Airtime purchased successfully", airtimeService.purchaseAirtime(request)));
     }
 }

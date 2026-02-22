@@ -24,11 +24,11 @@ public class TransactionController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
-        return ApiResponse.success("Transactions retrieved successfully", transactionService.getUserTransactions(userid, type, page, size));
+        return new ApiResponse<>("Transactions retrieved successfully", transactionService.getUserTransactions(userid, type, page, size));
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<TransactionResponse>> getById(@RequestParam Long userId, @PathVariable Long id) {
-        return ResponseEntity.ok(ApiResponse.success("Transaction retrieved successfully", transactionService.getById(userId, id)));
+        return ResponseEntity.ok(new ApiResponse<>("Transaction retrieved successfully", transactionService.getById(userId, id)));
     }
 }

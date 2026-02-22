@@ -21,12 +21,12 @@ public class WalletController {
 
     @PostMapping("/virtual-account")
     public ResponseEntity<ApiResponse<WalletResponse>> generateVA() {
-        return ResponseEntity.ok(ApiResponse.success("Virtual account generated successfully", walletService.generateVirtualAccount()));
+        return ResponseEntity.ok(new ApiResponse<>("Virtual account generated successfully", walletService.generateVirtualAccount()));
     }
 
     @GetMapping("/va-balance")
     public ResponseEntity<ApiResponse<Map<String, Object>>> getVirtualAccountBalance() {
-        return ResponseEntity.ok(ApiResponse.success("Balance retrieved successfully", walletService.getVirtualAccountBalance()));
+        return ResponseEntity.ok(new ApiResponse<>("Balance retrieved successfully", walletService.getVirtualAccountBalance()));
     }
 
 }

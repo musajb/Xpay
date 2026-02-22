@@ -22,16 +22,16 @@ public class AuthenticationController {
 
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<AuthenticationResponse>> register(@RequestBody CreateUserRequest request) {
-        return ResponseEntity.ok(ApiResponse.success("Registration successful", service.register(request)));
+        return ResponseEntity.ok(new ApiResponse<>("Registration successful", service.register(request)));
     }
 
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<AuthenticationResponse>> authenticate(@RequestBody AuthenticationRequest request) {
-        return ResponseEntity.ok(ApiResponse.success("Login successful", service.authenticate(request)));
+        return ResponseEntity.ok(new ApiResponse<>("Login successful", service.authenticate(request)));
     }
 
     @PostMapping("/set-passcode")
     public ResponseEntity<ApiResponse<AuthenticationResponse>> setPasscode(@RequestBody SetPasscodeRequest request) {
-        return ResponseEntity.ok(ApiResponse.success("Passcode set successfully", service.setPasscode(request)));
+        return ResponseEntity.ok(new ApiResponse<>("Passcode set successfully", service.setPasscode(request)));
     }
 }
